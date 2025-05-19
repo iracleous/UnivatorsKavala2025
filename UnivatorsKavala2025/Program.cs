@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using UnivatorsKavala2025.Data;
+using UnivatorsKavala2025.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -26,6 +30,10 @@ builder.Services.AddCors(options =>
 
 
 
+builder.Services.AddDbContext<WeatherDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IWeatherService, WeatherService>();
 
 // Add services to the container.
 
