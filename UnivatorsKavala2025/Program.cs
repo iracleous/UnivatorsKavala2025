@@ -1,6 +1,9 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using UnivatorsKavala2025.Data;
+using UnivatorsKavala2025.Models;
 using UnivatorsKavala2025.Services;
+using UnivatorsKavala2025.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,14 @@ builder.Services.AddDbContext<WeatherDbContext>(options =>
 
 builder.Services.AddScoped<IWeatherService, WeatherService>();
 
+// Register the validator with DI
+builder.Services.AddScoped<IValidator<WeatherForecast>, WeatherForecastValidator>();
+
+
+
+
+
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -56,6 +67,27 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowSpecificOrigin"); // Apply the policy defined above by its name
 
 
+
+
+// --- Automatic Migration Logic ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<WeatherDbContext>();
+        context.Database.Migrate();
+        // You can also add seed data here if needed
+        // await SeedData.Initialize(services); 
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        // Consider re-throwing the exception or taking other action
+    }
+}
+// --- End Automatic Migration Logic ---
 
 
 

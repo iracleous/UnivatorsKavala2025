@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UnivatorsKavala2025.Data;
 using UnivatorsKavala2025.Models;
@@ -9,13 +10,16 @@ namespace UnivatorsKavala2025.Services;
 public class WeatherService : IWeatherService
 {
     private readonly WeatherDbContext _context;
+    private readonly ILogger<WeatherService> _logger;
+    private readonly IValidator<WeatherForecast> _validator; // Inject the validator
 
-    public WeatherService(WeatherDbContext context)
+    public WeatherService(WeatherDbContext context, ILogger<WeatherService> logger, IValidator<WeatherForecast> validator)
     {
         _context = context;
+        _logger = logger;
+        _validator = validator;
     }
 
- 
     public async Task<ActionResult<IEnumerable<WeatherForecast>>> GetWeatherForecastsAsync()
     {
         return await _context.WeatherForecasts.ToListAsync();
@@ -64,16 +68,33 @@ public class WeatherService : IWeatherService
     }
 
  
-    public async Task<ActionResult<WeatherForecast>> AddWeatherForecastAsync(WeatherForecast weatherForecast)
+    public async Task<ActionResult<WeatherForecast>> AddWeatherForecastAsync(WeatherForecast forecast)
     {
-        _context.WeatherForecasts.Add(weatherForecast);
-        await _context.SaveChangesAsync();
 
-        //  return new CreatedAtActionResult("GetWeatherForecast",null, null, weatherForecast);
-        return weatherForecast;
+        // 1. Perform the validation
+        var validationResult = _validator.Validate(forecast);
+
+        // 2. Check if the validation was successful
+        if (!validationResult.IsValid)
+        {
+            _context.WeatherForecasts.Add(forecast);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Forecast is valid: {Date}, {TemperatureC}, {Summary}", forecast.Date, forecast.TemperatureC, forecast.Summary);
+
+            //  return new CreatedAtActionResult("GetWeatherForecast",null, null, forecast);
+            return forecast;
+        }
+
+        // 3. If validation failed, log the errors
+        foreach (var error in validationResult.Errors)
+        {
+            _logger.LogError("Validation error: {PropertyName} - {ErrorMessage}", error.PropertyName, error.ErrorMessage);
+        }
+        // 4. Return a BadRequest with the validation errors    
+        return new BadRequestObjectResult(validationResult.Errors);
     }
 
- 
+
     public async Task<ActionResult> DeleteWeatherForecastAsync(int id)
     {
         var weatherForecast = await _context.WeatherForecasts.FindAsync(id);
