@@ -52,3 +52,12 @@ export default tseslint.config({
   },
 })
 ```
+
+
+-------------------------------------------------------------------------
+
+npm install @mui/x-data-grid @mui/material @emotion/react @emotion/styled
+
+npm install @mui/icons-material
+
+npm install react-router-dom 

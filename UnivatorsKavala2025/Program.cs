@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: "AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5454"  // Your React/Angular/Vue app domain
+            policy.WithOrigins("http://localhost:54454"  // Your React/Angular/Vue app domain
                                 ) // Another allowed domain
                   .AllowAnyHeader() // Allow all headers from these origins
                   .AllowAnyMethod(); // Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
@@ -40,10 +40,6 @@ builder.Services.AddScoped<IWeatherService, WeatherService>();
 
 // Register the validator with DI
 builder.Services.AddScoped<IValidator<WeatherForecast>, WeatherForecastValidator>();
-
-
-
-
 
 
 // Add services to the container.
